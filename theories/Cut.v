@@ -15,7 +15,15 @@ remember (weight φ) as w. assert(Hw : weight φ ≤ w) by lia. clear Heqw.
 revert φ Hw ψ Γ.
 induction w; intros φ Hw; [pose (weight_pos φ); lia|].
 intros ψ Γ.
+
 (*
+intros HPφ HPψ.
+remember (height HPφ + height HPψ) as h.
+assert(Hleh : height HPφ + height HPψ ≤ h) by lia. clear Heqh.
+revert Γ φ ψ HPφ HPψ Hw Hleh.
+induction h; intros; [ pose (height_0 HPφ); lia |].
+ *)
+
 remember (Γ, ψ) as pe.
 replace Γ with pe.1 by now subst.
 replace ψ with pe.2 by now subst. clear Heqpe Γ ψ. revert pe φ Hw.
@@ -23,13 +31,6 @@ refine  (@well_founded_induction _ _ wf_pointed_env_ms_order _ _).
 intros (Γ &ψ). simpl. intro IHW'. assert (IHW := fun Γ0 => fun ψ0 => IHW' (Γ0, ψ0)).
 simpl in IHW. clear IHW'. intros φ Hw HPφ HPψ.
 Ltac otac Heq := subst; repeat rewrite env_replace in Heq by trivial; repeat rewrite env_add_remove by trivial; order_tac; rewrite Heq; order_tac.
- *)
-intros HPφ HPψ.
-remember (height HPφ + height HPψ) as h.
-assert(Hleh : height HPφ + height HPψ ≤ h) by lia. clear Heqh.
-revert Γ ψ HPφ HPψ Hleh.
-induction h; intros; [ pose (height_0 HPφ); lia |].
-
 
 destruct HPφ; simpl in Hw.
 - now apply contraction.
