@@ -16,13 +16,10 @@ revert φ Hw ψ Γ.
 induction w; intros φ Hw; [pose (weight_pos φ); lia|].
 intros ψ Γ.
 
-(*
-intros HPφ HPψ.
-remember (height HPφ + height HPψ) as h.
+(*remember (height HPφ + height HPψ) as h.
 assert(Hleh : height HPφ + height HPψ ≤ h) by lia. clear Heqh.
 revert Γ φ ψ HPφ HPψ Hw Hleh.
-induction h; intros; [ pose (height_0 HPφ); lia |].
- *)
+induction h; intros; [ pose (height_0 HPφ); lia |]. *)
 
 remember (Γ, ψ) as pe.
 replace Γ with pe.1 by now subst.
@@ -31,7 +28,7 @@ refine  (@well_founded_induction _ _ wf_pointed_env_ms_order _ _).
 intros (Γ &ψ). simpl. intro IHW'. assert (IHW := fun Γ0 => fun ψ0 => IHW' (Γ0, ψ0)).
 simpl in IHW. clear IHW'. intros φ Hw HPφ HPψ.
 Ltac otac Heq := subst; repeat rewrite env_replace in Heq by trivial; repeat rewrite env_add_remove by trivial; order_tac; rewrite Heq; order_tac.
-
+                                                       
 destruct HPφ; simpl in Hw.
 - now apply contraction.
 - apply ExFalso.
@@ -78,7 +75,7 @@ destruct HPφ; simpl in Hw.
     * simpl. lia.
     * rw (symmetry Heq) 0. apply ImpR, HPφ.
     * peapply HPψ.
-  + clear Hleh; forward. apply ImpR in HPφ.
+  + forward. apply ImpR in HPφ.
        assert(Hin' : (φ0 ∨ ψ) ∈ ((Γ0 • φ0 ∨ ψ) ∖ {[φ→ ψ0]}))
             by (apply in_difference; [discriminate|ms]).
        assert(HPφ' : (((Γ0 • φ0 ∨ ψ) ∖ {[φ→ ψ0]}) ∖ {[φ0 ∨ ψ]} • φ0 ∨ ψ) ⊢ (φ → ψ0))
@@ -124,7 +121,7 @@ destruct HPφ; simpl in Hw.
         -- simpl. lia.
         -- apply ImpLAnd_rev. backward. rw (symmetry Heq) 0. apply ImpR, HPφ.
         -- exch 0. rw (symmetry (difference_singleton _ _ Hin0)) 1. exact HPψ.
-  + clear Hleh; case (decide (((φ1 ∨ φ2) → φ3)= (φ → ψ0))).
+  + case (decide (((φ1 ∨ φ2) → φ3)= (φ → ψ0))).
       * intro Heq'; dependent destruction Heq'. rw (symmetry Heq) 0. apply OrL_rev in HPφ.
          apply (IHw (φ1 → ψ0)).
         -- simpl in *. lia.
@@ -178,7 +175,7 @@ destruct HPφ; simpl in Hw.
             apply ImpR, HPφ.
         ++ exch 0. rw (symmetry (difference_singleton _ _ Hin0)) 1. exact HPψ2.
   + (* QUANTIFIER CASE *)
-    clear Hleh; apply ForAllR. replace (Γ0 ∖ {[φ → ψ0]}) with (Γ) by (unfold_leibniz; exact Heq).
+    apply ForAllR. replace (Γ0 ∖ {[φ → ψ0]}) with (Γ) by (unfold_leibniz; exact Heq).
     apply IHW with (φ := (subst_form S' (φ → ψ0))).
     -- order_tac.
        unfold env_order, ltof.
@@ -188,8 +185,8 @@ destruct HPφ; simpl in Hw.
        apply pow5_a_lt_b in Hlt1.
        lia.
     -- simpl.
-       pose (subst_weight_general φ S' 0) as H1.
-       pose (subst_weight_general ψ0 S' 0) as H2.
+       pose (weight_subst_S φ) as H1.
+       pose (weight_subst_S ψ0) as H2.
        simpl in H1, H2.
        lia.
     -- simpl. apply ImpR. backward_map.
@@ -215,7 +212,7 @@ destruct HPφ; simpl in Hw.
   + rw (symmetry Heq) 0. apply ExistsR with (t := t), IHW with (φ := (φ → ψ0)).
     -- assert ( (subst_form (bind_var t) φ0) ≺f (Exists φ0) ) as H1.
        unfold form_order.
-       pose (subst_weight_general φ0 (bind_var t) 0) as H2.
+       pose (weight_subst_f (bind_var t)) as H2.
        simpl in H2.
        simpl.
        rewrite H2.
@@ -229,13 +226,13 @@ destruct HPφ; simpl in Hw.
        unfold env_order, ltof.
        rewrite !env_weight_add.
        rewrite !env_weight_elements_subst.
-       pose (subst_weight_general ψ S' 0) as Hw1.
+       pose (weight_subst_S ψ) as Hw1.
        simpl in Hw1.
        rewrite Hw1.
        assert (weight φ0 < weight (Exists φ0)) as Hlt1 by (simpl; lia).
        apply pow5_a_lt_b in Hlt1.
        lia.
-    -- pose (subst_weight_general (φ → ψ0) S' 0) as H1.
+    -- pose (weight_subst_S (φ → ψ0)) as H1.
        simpl. simpl in H1.
        rewrite H1.
        lia.
@@ -257,21 +254,7 @@ destruct HPφ; simpl in Hw.
       -- lia.
       -- apply (IHw( ForAll φ1 )).
          ++ lia.
-         ++ assert (Γ = Γ0) by ms.
-            subst.
-            pose (ImpR Γ0 (ForAll φ1) ψ0 HPφ) as HP1.  
-            apply (IHh Γ0 (ForAll φ1) HP1 HPψ1).
-            simpl in Hleh.
-            simpl.
-            lia.
-            (* PROVING IHW WTF!*)
-
-            apply IHW.
-            apply (H (S(height HPφ + height HPψ1)) Γ (ForAll φ1) HP1 HPψ1).
-            simpl.
-            lia.
-           
-             apply IHW with (φ := (ForAll φ1) → ψ0).
+         ++ apply IHW with (φ := (ForAll φ1) → ψ0).
             ** order_tac. admit. (* Definitely false *)
             ** simpl.
                simpl in Hw.
@@ -291,7 +274,7 @@ destruct HPφ; simpl in Hw.
     * intro Heq'. dependent destruction Heq'. rw (symmetry Heq) 0.
       apply (IHw( ForAll (φ1 → (subst_form S' ψ0)) )  ).   
       -- simpl. simpl in Hw.
-         pose (subst_weight_general ψ0 S' 0) as H1.
+         pose (weight_subst_S ψ0) as H1.
          simpl in H1.
          lia.
       -- apply ForAllR, ImpR, ExistsL_rev, HPφ.
@@ -300,7 +283,7 @@ destruct HPφ; simpl in Hw.
       -- assert ( (ForAll (φ1 → φ2 〔 S' 〕)) ≺f  ((Exists φ1) → φ2) ).
          unfold form_order.
          simpl.
-         pose (subst_weight_general φ2 S' 0) as H1.
+         pose (weight_subst_S φ2) as H1.
          simpl in H1.
          rewrite H1.
          lia.
@@ -330,71 +313,24 @@ destruct HPφ; simpl in Hw.
   + lia.
   + assumption.
   + exch 0. eapply ImpLImp_prev. exch 0. exact HPψ.
-- (* Copy of (V) but with ForAll *)
-  revert HPψ.
-  remember ( (Γ • (ForAll φ)) ) as Γ' eqn:HH.
-  replace (Γ • (ForAll φ)) with Γ'.
-  intros.
-  assert (Heq: Γ ≡ Γ' ∖ {[ ForAll φ]}) by ms.
-  assert (Hin : (ForAll φ) ∈ Γ')by ms.
-  (* DUPLICATE CASE WITH (V) EXCEPT FORALL NOT IMP *)
-  rw Heq 0. destruct HPψ; admit.
-  (* YOU WILL NEED THESE
-  + forward. apply Init.
-  + forward. auto with proof.
-  + apply AndR.
-     * rw (symmetry Heq) 0. apply IHW with (φ := (ForAll φ)).
-       -- order_tac.
-       -- simpl. lia.
-       -- now apply ForAllR.
-       -- peapply HPψ1.
-     * rw (symmetry Heq) 0. apply IHW with (φ := (ForAll φ)).
-       -- order_tac.
-       -- simpl. lia.
-       -- apply ForAllR. peapply HPφ.
-       -- peapply HPψ2.
-  ...
-  + apply ForAllR. replace (Γ0 ∖ {[ForAll φ]}) with (Γ) by (unfold_leibniz; exact Heq).
-    apply IHW with (φ := (subst_form S' (ForAll φ))).
-    -- order_tac.
-       unfold env_order, ltof.
-       rewrite !env_weight_add.
-       rewrite !env_weight_elements_subst.
-       assert (weight φ0 < weight (ForAll φ0)) as Hlt1 by (simpl; lia).
-       apply pow5_a_lt_b in Hlt1.
-       lia.
-    -- simpl.
-       pose (subst_weight_general φ (up S') 0) as H1.
-       simpl in H1.
-       lia.
-    -- simpl. apply ForAllR.
-       apply relabelling_lemma with (f := (up S')) in HPφ.
-       rewrite gmultiset_map_compose, subst_form_compose.
-       change (S' ☉ S') with (up S' ☉ S').
-       rewrite <- subst_form_compose, <- gmultiset_map_compose.
-       exact HPφ.
-       apply (inj_upN_S 1).
-    -- backward_map.
-       rewrite <- HH.
-       exact HPψ. *)
+- (* Copy of (V) but with ForAll *) admit.
 - apply ForAllL with (t := t). eapply IHW; eauto.
   + order_tac.
-
     admit. (* Definitely false *)
   + exch 0. exch 1. apply ForAllL_rev. exch 0. exact HPψ.
-- admit. (* Copy of previous case *)
+- (*Copy of (V) but with Exists *) admit.
 - apply ExistsL. apply IHW with (φ := subst_form S' (ψ0)).
   + order_tac.
     unfold env_order, ltof.
     rewrite !env_weight_add.
     rewrite !env_weight_elements_subst.
-    pose (subst_weight_general ψ S' 0) as Hw1.
+    pose (weight_subst_S ψ) as Hw1.
     simpl in Hw1.
     rewrite Hw1.
     assert (weight φ < weight (Exists φ)) as Hlt1 by (simpl; lia).
     apply pow5_a_lt_b in Hlt1.
     lia.
-  + pose (subst_weight_general ψ0 S' 0) as H1.
+  + pose (weight_subst_S ψ0) as H1.
     simpl in H1.
     lia.
   + exact HPφ.
@@ -402,7 +338,7 @@ destruct HPφ; simpl in Hw.
 - apply ImpLForAll.
   + apply IHW with (φ := ψ0).
     * order_tac.
-      admit. (* Definately not true *)
+      admit. (* Definately false *)
     * lia.
     * apply ImpLForAll; assumption.
     * apply weakening; assumption.
@@ -413,7 +349,7 @@ destruct HPφ; simpl in Hw.
   + assert ( (ForAll (φ1 → φ2 〔 S' 〕)) ≺f  ((Exists φ1) → φ2) ).
     unfold form_order.
     simpl.
-    pose (subst_weight_general φ2 S' 0) as H1.
+    pose (weight_subst_S φ2) as H1.
     simpl in H1.
     rewrite H1.
     lia.
