@@ -1,0 +1,9 @@
+-Q theories G4i
+
+theories/Formulas.v
+theories/Substitutions.v
+theories/Environments.v
+theories/Order.v
+theories/Sequents.v
+theories/SequentProps.v
+theories/Cut.v
