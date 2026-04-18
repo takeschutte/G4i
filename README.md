@@ -3,6 +3,10 @@
 Attempted formalisation of cut and contraction admissibility for the first-order Intuitionistic Sequent Calculus G4i presented in [Admissibility of Structural Rules for Contraction-Free Systems
 of Intuitionistic Logic](http://www.jstor.org/stable/2695061) using code from [Formalized Uniform Interpolation](https://github.com/hferee/UIML/tree/main).
 
+## Documentation
+
+See [Releases](https://github.com/takeschutte/G4i/releases/download/v0.0.0/docs.pdf) for documentation.
+
 ## Dependencies
 
 Currently the only dependency is:
