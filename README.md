@@ -5,7 +5,7 @@ of Intuitionistic Logic](http://www.jstor.org/stable/2695061) using code from [F
 
 ## Documentation
 
-See [Releases](https://github.com/takeschutte/G4i/releases/download/v0.0.0/docs.pdf) for documentation.
+The [Releases](https://github.com/takeschutte/G4i/releases/download/v0.0.0/docs.pdf) contains human-readable proofs generated from comments in the code.
 
 ## Dependencies
 
