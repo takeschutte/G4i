@@ -21,8 +21,8 @@ Currently the only dependency is:
 
 To install this run:
 ```sh
-opam repo add coq-released https://coq.inria.fr/opam/released
-opam install coq-stdpp
+opam repo add rocq-released https://rocq-prover.github.io/opam/released/
+opam install rocq-stdpp
 ```
 
 ## Building
