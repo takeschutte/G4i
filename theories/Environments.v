@@ -71,8 +71,7 @@ Lemma union_mult (M N : env) x :
 Proof. apply multiplicity_disj_union. Qed.
 
 Lemma singleton_mult_in x y: x = y -> multiplicity x {[+ y +]} = 1.
-Proof.
-  intro Heq. rewrite Heq. apply multiplicity_singleton. Qed.
+Proof. intros Heq; rewrite Heq; apply multiplicity_singleton_eq. Qed.
 
 Lemma singleton_mult_notin x y: x <> y -> multiplicity x {[y]} = 0.
 Proof. apply multiplicity_singleton_ne. Qed.
@@ -189,7 +188,7 @@ assert(Hcut : forall Γ' (HΓ' : Γ' ⊆ Γ) ψ0 (Hin : In ψ0 Γ'),
       destruct (IHΓ' Hincl ψ' Hin'') as [Hin0 Hprop].
       eexists. right. apply Hprop.
 - destruct (Hcut Γ (reflexivity Γ) ψ0) as [Hin' Hprop].
-  + auto. now apply elem_of_list_In.
+  + auto. now apply list_elem_of_In.
   + exists Hin'. exact Hprop.
 Qed.
 
@@ -296,7 +295,7 @@ destruct form_eq_dec. tauto. firstorder.
 Qed.
 
 Lemma remove_include θ θ' Δ : (θ' ∈ Δ) -> θ ∈ rm θ' Δ -> θ ∈ Δ.
-Proof. intros Hin' Hin. eapply elem_of_list_In, in_rm, elem_of_list_In, Hin. Qed.
+Proof. intros Hin' Hin. eapply list_elem_of_In, in_rm, list_elem_of_In, Hin. Qed.
 
 
 (* technical lemma : one can constructively find whether an environment contains
@@ -404,6 +403,11 @@ Section gmultiset_map.
   Lemma gmultiset_map_eq (X Y : gmultiset A) : X = Y -> gmultiset_map f X = gmultiset_map f Y.
   Proof. intros H'. f_equal; easy. Qed.
 
+
+  Lemma gmultiset_map_equiv (X Y : gmultiset A) :
+    X ≡ Y -> gmultiset_map f X ≡ gmultiset_map f Y.
+  Proof. pose gmultiset_map_eq; unfold_leibniz; apply e. Qed.
+  
   Lemma gmultiset_map_elem_of (x : A) (X : gmultiset A): x ∈ X -> f x ∈ gmultiset_map f X.
   Proof. intros Hin; apply elem_of_gmultiset_map; exists x; split; [ easy | easy ]. Qed.
 

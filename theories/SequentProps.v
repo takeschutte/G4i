@@ -614,6 +614,21 @@ Proof.
     ]; easy.
 Qed.
 
+Lemma specialise_evar2 Γ φ t n :
+    (gmultiset_map (subst_form (upN n S')) Γ) ⊢ φ ->
+    Γ ⊢ subst_form (upN n (bind_var t)) φ.
+Proof.
+    intro H.
+    replace Γ with (gmultiset_map (subst_form (upN n (bind_var t)))
+                      (gmultiset_map (subst_form (upN n S')) Γ)).
+    apply specialise_term with (t := t) (n := n) in H.
+    apply H.
+    rewrite gmultiset_map_compose, subst_form_compose, upN_compose.
+    simpl.
+    rewrite upN_ident, subst_form_ident, gmultiset_map_ident.
+    easy.
+Qed.
+
 Lemma ExistsL_rev_specialised Γ φ ψ t: 
   Γ • (Exists φ) ⊢ ψ -> Γ • (subst_form (bind_var t) φ) ⊢ ψ.
 Proof.
@@ -708,54 +723,50 @@ Lemma height_0 {Γ φ} (Hp : Γ ⊢ φ) : height Hp <> 0.
 Proof. destruct Hp; simpl; lia. Qed.
 
 Lemma relabelling_lemma Γ ψ f :
-  Injective f -> Γ ⊢ ψ -> (gmultiset_map (subst_form f) Γ) ⊢ (subst_form f ψ).
+  Γ ⊢ ψ -> (gmultiset_map (subst_form f) Γ) ⊢ (subst_form f ψ).
 Proof.
-  intros HInj Hp.
-  revert f HInj.
+  intros Hp.
+  revert f.
   induction Hp; intros; simpl.
   - forward_map. apply Init.
   - forward_map. apply ExFalso.
-  - apply AndR; revert HInj. apply IHHp1. apply IHHp2.
+  - apply AndR; [ apply IHHp1 | apply IHHp2 ].
   - forward_map. simpl. apply AndL.
-    backward_map. backward_map. revert HInj. apply IHHp.
-  - apply OrR1. revert HInj. apply IHHp.
-  - apply OrR2. revert HInj. apply IHHp.
-  - forward_map. simpl. apply OrL; backward_map; revert HInj. apply IHHp1. apply IHHp2.
-  - apply ImpR. backward_map. revert HInj. apply IHHp.
+    backward_map. backward_map. apply IHHp.
+  - apply OrR1. apply IHHp.
+  - apply OrR2. apply IHHp.
+  - forward_map. simpl. apply OrL; backward_map; [ apply IHHp1 |  apply IHHp2].
+  - apply ImpR. backward_map. apply IHHp.
   - do 2 forward_map. simpl. apply ImpL0.
     change (Atom i (map (subst_term f) xs)) with (subst_form f (Atom i xs)).
-    do 2 backward_map. revert HInj. apply IHHp.
+    do 2 backward_map. apply IHHp.
   - forward_map. simpl. apply ImpLAnd.
     change (φ1 〔 f 〕 → φ2 〔 f 〕 → φ3 〔 f 〕) with ((φ1 → φ2 → φ3) 〔 f 〕).
-    backward_map. revert HInj. apply IHHp.
+    backward_map. apply IHHp.
   - forward_map. simpl. apply ImpLOr.
     change (φ1 〔 f 〕 → φ3 〔 f 〕) with ((φ1 → φ3)〔 f 〕).
     change (φ2 〔 f 〕 → φ3 〔 f 〕) with ((φ2  → φ3)〔 f 〕).
-    do 2 backward_map. revert HInj. apply IHHp.
+    do 2 backward_map. apply IHHp.
   - forward_map. simpl. apply ImpLImp.
     change (φ2 〔 f 〕 → φ3 〔 f 〕) with ((φ2 → φ3)〔 f 〕).
-    do 2 backward_map. revert HInj. apply IHHp1.
-    backward_map. revert HInj. apply IHHp2.
+    do 2 backward_map. apply IHHp1.
+    backward_map. apply IHHp2.
   - apply ForAllR.
     rewrite gmultiset_map_compose, subst_form_compose.
     change (S' ☉ f) with ((up f) ☉  S').
     rewrite <- subst_form_compose.
     rewrite <- gmultiset_map_compose.
     apply IHHp.
-    apply inj_upN_f with (n := 1).
-    easy.
   - forward_map. simpl. apply ForAllL with (t := subst_term f t).
     change ( ForAll (subst_form (up f) φ) ) with (subst_form f (ForAll φ)).
     backward_map.
     rewrite subst_form_compose_pt.
     rewrite <- f_bind_var_t_commute, <- subst_form_compose_pt.
-    revert HInj.
     backward_map.
     apply IHHp.
   - apply ExistsR with (t := subst_term f t).
     rewrite subst_form_compose_pt.
     rewrite <- f_bind_var_t_commute, <- subst_form_compose_pt.
-    revert HInj.
     apply IHHp.
   - forward_map. simpl. apply ExistsL.
     rewrite subst_form_compose_pt.
@@ -766,13 +777,11 @@ Proof.
     rewrite <- gmultiset_map_compose.
     backward_map.
     apply IHHp.
-    apply inj_upN_f with (n := 1).
-    easy.
   - forward_map. simpl. apply ImpLForAll.
     change ((ForAll φ1 〔 ⇑ f 〕) → φ2 〔 f 〕) with (((ForAll φ1) → φ2) 〔 f 〕).
     change (ForAll φ1 〔 ⇑ f 〕) with ((ForAll φ1) 〔  f 〕).
-    backward_map; revert HInj; apply IHHp1.
-    backward_map; revert HInj; apply IHHp2.
+    backward_map; apply IHHp1.
+    backward_map; apply IHHp2.
   - forward_map. simpl. apply ImpLExists.
     rewrite subst_form_compose_pt.
     change (S' ☉ f) with ((up f) ☉  S').
@@ -780,7 +789,6 @@ Proof.
     change (ForAll (φ1 〔 ⇑ f 〕 → φ2 〔 S' 〕 〔 ⇑ f 〕)) with
       ((ForAll (φ1  → φ2 〔 S' 〕) )〔 f 〕).
     backward_map.
-    revert HInj.
     apply IHHp.
 Qed.
 
@@ -801,7 +809,6 @@ Proof.
   rewrite <- subst_form_compose_pt.
   backward_map.
   apply Hp.
-  apply inj_swap.
 Qed.
 
 Lemma reorder_ev2 Γ φ0 φ :
@@ -820,9 +827,8 @@ Proof.
   change (⇑ S') with (swap ☉ S') at 2.
   rewrite <- subst_form_compose_pt.
   apply Hp.
-  apply inj_swap.
 Qed.
-  
+
 Lemma ExistsL_rev Γ φ ψ: 
   Γ • (Exists φ) ⊢ ψ -> (gmultiset_map (subst_form S') Γ) • φ ⊢ (subst_form S' ψ).
 Proof.
@@ -933,6 +939,84 @@ Proof.
     ms.
 Qed.
 
+Lemma ForAllR_rev_specialised Γ φ t : Γ ⊢ (ForAll φ) -> Γ ⊢ (subst_form (bind_var t) φ).
+Proof.
+  intros.
+  apply specialise_evar2 with (n := 0).
+  simpl.
+  clear t.
+  remember (ForAll φ) as φ'.
+  revert φ Heqφ'.
+  induction H; intros; try discriminate; try repeat forward_map; simpl.
+  - apply ExFalso.
+  - apply AndL; do 2 backward_map; auto with proof.
+  - apply OrL; backward_map; auto with proof.
+  - apply ImpL0.
+    change (Atom i (map (subst_term S') xs)) with
+      (subst_form S' (Atom i xs)).
+    do 2 backward_map.
+    auto with proof.
+  - apply ImpLAnd.
+    change  (φ1 〔 S' 〕 → φ2 〔 S' 〕 → φ3 〔 S' 〕) with
+      (subst_form S' (φ1 → φ2 → φ3)).
+    backward_map.
+    auto with proof.
+  - apply ImpLOr.
+    change (φ1 〔 S' 〕 → φ3 〔 S' 〕) with (subst_form S' (φ1 → φ3)).
+    change (φ2 〔 S' 〕 → φ3 〔 S' 〕) with (subst_form S' (φ2 → φ3)).
+    repeat backward_map.
+    auto with proof.
+  - apply ImpLImp.
+    change (φ2 〔 S' 〕 → φ3 〔 S' 〕) with
+      (subst_form S' (φ2 → φ3)).
+    repeat backward_map.
+    apply relabelling_lemma.
+    easy.
+    backward_map; auto with proof.
+  - inversion Heqφ'; subst; easy.
+  - apply ForAllL with (t := (subst_term S' t)).
+    rewrite subst_form_compose_pt,  <- f_bind_var_t_commute, <- subst_form_compose_pt.
+    change (ForAll (subst_form (up S') φ)) with (subst_form S' (ForAll φ)).
+    repeat backward_map.
+    auto with proof.
+  - apply ExistsL.
+    specialize IHProvable with (φ := (subst_form (up S') φ0)).
+    subst.
+    simpl in IHProvable.
+    
+    apply relabelling_lemma with (f := swap) in IHProvable.
+    rewrite !gmultiset_map_compose, !subst_form_compose in IHProvable.
+
+    rewrite gmultiset_map_compose, subst_form_compose.
+    rewrite swap_up_succ at 2.
+    change (S' ☉ S') with ((swap ☉ S') ☉ S').
+    change (up S') with (swap ☉ S') at 1.
+    rewrite <- subst_form_compose, <- gmultiset_map_compose at 1.
+    backward_map.
+    rewrite <- !subst_form_compose_pt.
+    apply IHProvable.
+    easy.
+  - apply ImpLForAll.
+    change  ((ForAll φ1 〔 ⇑ S' 〕) → φ2 〔 S' 〕) with
+       (subst_form S' ((ForAll φ1) → φ2)).
+    backward_map.
+    change (ForAll (subst_form (up S') φ1)) with (subst_form S' (ForAll φ1)).
+    apply relabelling_lemma.
+    easy.
+    backward_map.
+    auto with proof.
+  - apply ImpLExists.
+    specialize (IHProvable φ Heqφ').
+    rewrite subst_form_compose_pt.
+    change (S' ☉ S') with (up S' ☉  S').
+    rewrite <- subst_form_compose_pt.
+    change  (ForAll (φ1 〔 ⇑ S' 〕 → φ2 〔 S' 〕 〔 ⇑ S' 〕)) with
+      
+      (subst_form S' (ForAll (φ1 → (subst_form S' φ2)))).
+    backward_map.
+    easy.
+Qed.
+  
 (* Partial inverse of ImpLForAll *)
 Lemma ImpLForAll_prev Γ φ1 φ2 ψ:
     Γ • (ForAll (φ1) → φ2) ⊢ ψ → (Γ • φ2) ⊢ ψ.

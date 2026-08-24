@@ -349,7 +349,7 @@ Qed.
 Global Hint Resolve remove_In_env_order : order.
 
 Lemma elem_of_list_In_1 {A : Type}: ∀ (l : list A) (x : A), x ∈ l <-> In x l.
-Proof. apply elem_of_list_In. Qed.
+Proof. apply list_elem_of_In. Qed.
 
 Global Hint Resolve  elem_of_list_In_1 : order.
 
@@ -386,13 +386,13 @@ unfold pointed_env_order; subst; simpl; try match goal with
 | H : _ ∈ list_to_set_disj _ |- _ => apply elem_of_list_to_set_disj in H; try prepare_order
 | H : ?ψ ∈ ?Γ |- ?Γ' ≺ ?Γ => let ψ' := (get_diff_form Γ') in
     apply (env_order_equiv_right_compat (difference_singleton Γ ψ' H)) ||
-    (eapply env_order_lt_le_trans ; [| apply (remove_In_env_order_refl _ ψ'); try apply elem_of_list_In; trivial])
+    (eapply env_order_lt_le_trans ; [| apply (remove_In_env_order_refl _ ψ'); try apply list_elem_of_In; trivial])
 | H : ?ψ ∈ ?Γ |- ?Γ' ≺ (?φ :: ?Γ)  => let ψ' := (get_diff_form Γ') in
     apply (env_order_equiv_right_compat (equiv_disj_union_compat_r(difference_singleton Γ ψ' H)))
 | H : ?ψ ∈ ?Γ |- ?Γ' ≺ (_ :: _ :: ?Γ) => let ψ' := (get_diff_form Γ') in
 apply (env_order_equiv_right_compat (equiv_disj_union_compat_r(equiv_disj_union_compat_r(difference_singleton Γ ψ' H)))) ||
 (eapply env_order_le_lt_trans; [| apply env_order_add_compat;
-eapply env_order_lt_le_trans; [| (apply env_order_refl_add; apply (remove_In_env_order_refl _ ψ'); try apply elem_of_list_In; trivial) ] ] )
+eapply env_order_lt_le_trans; [| (apply env_order_refl_add; apply (remove_In_env_order_refl _ ψ'); try apply list_elem_of_In; trivial) ] ] )
 |H : ?a = _ |- context[?a] => rewrite H; try prepare_order
 end.
 
