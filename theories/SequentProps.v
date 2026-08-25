@@ -1312,10 +1312,8 @@ destruct Hp; simpl in Hleh, Hle.
     apply ExistsL.
     rewrite env_add_remove in *.
     apply p_contr.
-    apply IHw.
-    ms.
-    ms.
-    ms.
+    apply IHw; try ms.
+    
     assert ((subst_form (bind_var (var 0)) (subst_form (up S') φ)) = φ) as Hφ by (
     rewrite subst_form_compose_pt, bind_var_0_upS_ident, subst_form_ident; easy).
     rewrite <- Hφ at 3.
@@ -1333,15 +1331,12 @@ destruct Hp; simpl in Hleh, Hle.
     pose (weight_subst_S ψ) as Hw1.
     simpl in Hw1.
     rewrite <- Hw1 in Hle.
-    apply (IHh (subst_form S' ψ) Hle) with Hp.
-    lia.
-    ms.
+    apply (IHh (subst_form S' ψ) Hle) with Hp; [ lia | ms | ].
     assert ( ψ ∈ (Γ ) ∖ {[ψ]}) as Hin'1 by multiset_solver.
     apply (gmultiset_map_elem_of (subst_form S')) in Hin'1.
     pose (gmultiset_map_distr_singleton_diff (subst_form S') Γ ψ inj_subst_form_S).
-    assert (gmultiset_map (subst_form S') (Γ ∖ {[ ψ ]}) =
-              gmultiset_map (subst_form S') Γ ∖ {[ (subst_form S' ψ) ]}) by ms.
-    rewrite H in Hin'1.
+    replace (gmultiset_map (subst_form S') (Γ ∖ {[ ψ ]})) with
+      (gmultiset_map (subst_form S') Γ ∖ {[ (subst_form S' ψ) ]}) in Hin'1 by ms.
     ms.
 - case (decide (ψ = (ForAll φ1 → φ2))); intros.
   + subst.
@@ -1349,17 +1344,9 @@ destruct Hp; simpl in Hleh, Hle.
     apply ImpLForAll; rewrite !env_add_remove in *.
     * apply p_contr.
       replace ((Γ ∖ {[(ForAll φ1) → φ2]} • ((ForAll φ1) → φ2))) with Γ by multiset_solver.
-      apply IHh with (Hp := Hp1).
-      lia.
-      lia.
-      ms.
-      ms.
+      apply IHh with (Hp := Hp1); try lia; try ms.
     * apply p_contr.
-      apply IHw.
-      simpl in *.
-      lia.
-      ms.
-      ms.
+      apply IHw; [ simpl in *; lia | ms | ms | ].
       apply ImpLForAll_prev with (φ1 := φ1).
       exch 0.
       replace ((Γ ∖ {[(ForAll φ1) → φ2]} • ((ForAll φ1) → φ2))) with Γ by multiset_solver.
@@ -1367,44 +1354,24 @@ destruct Hp; simpl in Hleh, Hle.
   + forward.
     apply ImpLForAll.
     * backward.
-      apply IHh with (Hp := Hp1).
-      lia.
-      lia.
-      ms.
-      ms.
+      apply IHh with (Hp := Hp1); [ lia | lia | ms | ms ].
     * backward.
-      apply IHh with (Hp := Hp2).
-      lia.
-      lia.
-      ms.
-      multiset_solver.
+      apply IHh with (Hp := Hp2); [ lia | lia | ms | multiset_solver ].
 - case (decide (ψ = (Exists φ1 → φ2))); intros.
   + subst.
     exhibit Hin' 0.
     apply ImpLExists.
     rewrite !env_add_remove in *.
     apply p_contr.
-    apply IHw.
-    simpl in Hle.
-    simpl.
-    pose (weight_subst_S φ2).
-    simpl in e.
-    rewrite e.
-    lia.
-    ms.
-    ms.
+    apply IHw; [ simpl in *; rewrite weight_subst_f; lia|ms|ms|].
     apply ImpLExists_rev.
-    exch 0.
-    replace ( Γ ∖ {[(Exists φ1) → φ2]} • ((Exists φ1) → φ2) ) with Γ by multiset_solver.
+    backward.
+    rewrite env_add_remove.
     easy.
   + forward.
     apply ImpLExists.
     backward.
-    apply IHh with (Hp := Hp).
-    lia.
-    lia.
-    ms.
-    multiset_solver.
+    apply IHh with (Hp := Hp); [ lia | lia | ms | multiset_solver ].
 Qed.
 
 Global Hint Resolve contraction : proof.

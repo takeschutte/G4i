@@ -251,12 +251,6 @@ Qed.
 Lemma upN_ident n : upN n (var) = (var).
 Proof. apply functional_extensionality; intros. apply upN_ident_pt. Qed.
 
-Lemma up_ident_pt i :  up var i = var i.
-Proof. apply (upN_ident_pt i 1). Qed.
-
-Lemma up_ident : up (var) = (var).
-Proof. apply functional_extensionality; intros. apply up_ident_pt. Qed.
-
 Lemma upN_compose_pt (f g : nat -> term) i : (*[ Composition for lifting ]*)
   (*; $\forall n\;(\up^n(g)(i)[ \up^n(f) ] =\;\up^n(f \odot g)(i)$ ;*)
   forall n, subst_term (upN n f) (upN n g i) = upN n (f ☉ g) i.
@@ -299,12 +293,6 @@ Qed.
 
 Lemma upN_compose f g n : (upN n f) ☉ (upN n g) = upN n (f ☉ g).
 Proof. apply functional_extensionality; intros; apply upN_compose_pt. Qed.
-
-Lemma up_compose_pt (f g : nat -> term) i :  subst_term (up f) (up g i) = up (f ☉ g) i.
-Proof. apply (upN_compose_pt f g i 1). Qed.
-
-Lemma up_compose f g : (up f) ☉ (up g) = up (f ☉ g).
-Proof. apply functional_extensionality; intros; apply up_compose_pt. Qed.
 
 (* Shouldn't have to prove this... *)
 Lemma map_ident {T} (l: list T) : map (fun x => x) l = l.

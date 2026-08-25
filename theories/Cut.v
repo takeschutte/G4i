@@ -22,7 +22,7 @@ Proof.
   - peapply (generalised_weakeningL _ Γ1 _ d2).
 Qed.
         
-Lemma hshape (σ : nat -> term) (θ : form) (hθ : ImpOrForAll θ) :
+Lemma subst_ImpOrForAll (σ : nat -> term) (θ : form) (hθ : ImpOrForAll θ) :
   ImpOrForAll (subst_form σ θ).
 Proof.
   destruct hθ.
@@ -102,11 +102,7 @@ Proof.
         rewrite env_add_remove.
         replace ((Γ0 ⊎ Γ') ∖ {[+ Atom i xs → φ +]} • φ) with  (Γ0 ⊎  (Γ' ∖ {[+ Atom i xs → φ +]} • φ)) by multiset_solver.
         
-        apply (IHh φ0).
-        multiset_solver.
-        lia.
-        easy.
-        easy.
+        apply (IHh φ0); [ multiset_solver | lia | easy | easy].
   - case (decide ((Implies (φ1 ∧ φ2) φ3) = φ0)) as [Heq | Hneq].
     + assert (Γ = Γ') by ms.
       subst.
@@ -122,11 +118,8 @@ Proof.
       replace (Γ0 ⊎ Γ') with
         ((Γ0 ⊎ (Γ' ∖ {[φ1 ∧ φ2 → φ3]})) • (φ1 ∧ φ2 → φ3)) by multiset_solver.
       apply ImpLAnd.
-      peapply (IHh φ0 Γ0 ((Γ'∖ {[φ1 ∧ φ2 → φ3]}) • (φ1 → φ2 → φ3))).
-      multiset_solver.
-      lia.
-      easy.
-      easy.      
+      peapply (IHh φ0 Γ0 ((Γ'∖ {[φ1 ∧ φ2 → φ3]}) • (φ1 → φ2 → φ3)));
+        [ multiset_solver | lia | easy | easy ].
   - destruct (decide ((φ1 ∨ φ2 → φ3) = φ0)) as [Heq | Hneq].
     + assert (Γ = Γ') by ms. subst.
       clear HeqΓ.
@@ -143,19 +136,15 @@ Proof.
       apply generalised_weakeningL.
       apply ImpR. exch 0.
       auto with proof.
-      
       replace ( (Γ0 ⊎ Γ') • (φ1 → φ3) • (φ2 → φ3) )
         with (Γ0 ⊎ (Γ' • (φ1 → φ3) • (φ2 → φ3) )) by ms.
       apply generalised_weakeningL.
       easy.
     + assert (Hin : (φ1 ∨ φ2 → φ3) ∈ Γ') by multiset_solver.      
-      peapply (ImpLOr (Γ0 ⊎ (Γ' ∖ {[φ1 ∨ φ2 → φ3]})) φ1 φ2 φ3).      
-      peapply (IHh φ0 Γ0 (Γ' ∖ {[φ1 ∨ φ2 → φ3]} • (φ1 → φ3) • (φ2 → φ3))).
-      multiset_solver.
-      lia.
-      easy.
-      easy.
-      multiset_solver.
+      peapply (ImpLOr (Γ0 ⊎ (Γ' ∖ {[φ1 ∨ φ2 → φ3]})) φ1 φ2 φ3);
+        [ | multiset_solver]. 
+      peapply (IHh φ0 Γ0 (Γ' ∖ {[φ1 ∨ φ2 → φ3]} • (φ1 → φ3) • (φ2 → φ3)));
+        [ multiset_solver | lia | easy | easy ].
   - destruct (decide ((Implies (Implies φ1 φ2) φ3) = φ0)) as [Heq | Hneq].
     + assert (Γ = Γ') by ms.
       subst.
@@ -173,65 +162,42 @@ Proof.
            with ((Γ0 • (φ1 → φ2)) ⊎ (Γ' • φ1 • φ2)) by ms.
       apply generalised_weakeningR; easy.
     + assert (Hin : ((φ1 → φ2) → φ3) ∈ Γ') by multiset_solver.      
-      peapply (ImpLImp (Γ0 ⊎ (Γ' ∖ {[(φ1 → φ2) → φ3]})) φ1 φ2 φ3).
-      peapply (IHh1 φ0 Γ0 (Γ' ∖ {[(φ1 → φ2) → φ3]}  • φ1 • (φ2 → φ3) )).
-      multiset_solver.
-      lia.
-      easy.
-      easy.
-      peapply (IHh2 φ0 Γ0 (Γ' ∖ {[(φ1 → φ2) → φ3]}  • φ3  )).
-      multiset_solver.
-      lia.
-      easy.
-      easy.
-      multiset_solver.
+      peapply (ImpLImp (Γ0 ⊎ (Γ' ∖ {[(φ1 → φ2) → φ3]})) φ1 φ2 φ3);
+        [ | | multiset_solver ].
+      peapply (IHh1 φ0 Γ0 (Γ' ∖ {[(φ1 → φ2) → φ3]}  • φ1 • (φ2 → φ3) ));
+        [ multiset_solver | lia | easy | easy ].
+      peapply (IHh2 φ0 Γ0 (Γ' ∖ {[(φ1 → φ2) → φ3]}  • φ3  ));
+        [ multiset_solver | lia | easy | easy ].
   - apply ForAllR.
     replace ( gmultiset_map (subst_form S') (Γ0 ⊎ Γ')) with
       ((gmultiset_map (subst_form S') Γ0) ⊎ (gmultiset_map (subst_form S') Γ'))by (symmetry; apply gmultiset_map_disj_union).
-    apply IHh with (φ := (subst_form S' φ0)).
-    subst.
-    apply  gmultiset_map_distr_disj_union_singleton.
-    rewrite weight_subst_f.
-    lia.
-    apply hshape. easy.
-    apply relabelling_lemma.
-    easy.
+    apply IHh with (φ := (subst_form S' φ0)); [ 
+        subst; apply gmultiset_map_distr_disj_union_singleton |
+        rewrite weight_subst_f; lia | 
+        apply subst_ImpOrForAll; easy | 
+        apply relabelling_lemma; easy ].
   - destruct (decide ((ForAll φ) = φ0)) as [Heq | Hneq].
     + assert (Γ = Γ') by ms.
       subst.
-
-      assert (Hp1 : Γ0 ⊢ (subst_form (bind_var t) φ)).
-      apply ForAllR_rev_specialised.
-      easy.
-      assert (Hp2 : Γ0 ⊎ Γ' ⊢ (subst_form (bind_var t) φ)).
-      apply generalised_weakeningR.
-      easy.
-
+      assert (Hp1 : Γ0 ⊢ (subst_form (bind_var t) φ)) by (
+          apply ForAllR_rev_specialised; easy
+      ).
+      assert (Hp2 : Γ0 ⊎ Γ' ⊢ (subst_form (bind_var t) φ)) by (
+          apply generalised_weakeningR; easy
+      ).
       apply generalised_contraction.
       replace (Γ0 ⊎ Γ0 ⊎ Γ') with (Γ0 ⊎ (Γ0 ⊎ Γ')) by ms.
       apply (cutM IHw (subst_form (bind_var t) φ))
-        with (Γ2 := (Γ0 ⊎ Γ')).
-      rewrite weight_subst_f; simpl in Hw; lia.
-      easy.
-
-      replace  (Γ0 ⊎ Γ' • φ 〔 bind_var t 〕) with
+        with (Γ2 := (Γ0 ⊎ Γ')); try easy.
+      * rewrite weight_subst_f; simpl in Hw; lia.
+      * replace  (Γ0 ⊎ Γ' • φ 〔 bind_var t 〕) with
         (Γ0 ⊎ (Γ' • φ 〔 bind_var t 〕)) by ms.
-
-      apply (IHh (ForAll φ)).
-      ms.
-      easy.
-      easy.
-      easy.
+        apply (IHh (ForAll φ)); try easy; try ms.
     + assert (Hin: ForAll φ ∈ Γ') by multiset_solver.
-      peapply (ForAllL (Γ0 ⊎ (Γ' ∖ {[ ForAll φ ]})) φ ψ t).
+      peapply (ForAllL (Γ0 ⊎ (Γ' ∖ {[ ForAll φ ]})) φ ψ t); [ | multiset_solver].
       peapply (IHh φ0 Γ0
                  (Γ' ∖ {[ForAll φ]} • (ForAll φ) • φ 〔 bind_var t 〕)
-              ).
-      multiset_solver.
-      easy.
-      easy.
-      easy.
-      multiset_solver.
+              ); [ multiset_solver | easy | easy | easy ].
   - apply ExistsR with (t := t).
     apply IHh with (φ := φ0); easy.
   - case (decide ((Exists φ) = φ0)) as [Heq | Hneq].
@@ -248,8 +214,7 @@ Proof.
         ((gmultiset_map (subst_form S') Γ0) ⊎
            ((gmultiset_map (subst_form S') (Γ' ∖ {[Exists φ]})) • φ)) by ms.
       pose (gmultiset_map_distr_disj_union_singleton (subst_form S')) as H1.
-      pose (gmultiset_map_eq (subst_form S')) as H2.
-     
+      pose (gmultiset_map_eq (subst_form S')) as H2.   
       apply (IHh (subst_form S' φ0)); try easy.
       * unfold_leibniz.
         rewrite env_add_comm.
@@ -258,7 +223,7 @@ Proof.
         apply H2.
         multiset_solver.
       * rewrite weight_subst_f; lia.
-      * apply hshape; easy.
+      * apply subst_ImpOrForAll; easy.
       * apply relabelling_lemma; easy.
       * multiset_solver.
   - destruct (decide (((ForAll φ1) → φ2) = φ0)) as [Heq | Hneq].
@@ -276,42 +241,28 @@ Proof.
       replace ( Γ0 ⊎ Γ ⊎ (Γ0 ⊎ Γ) ⊎ ∅) with ((Γ0 ⊎ Γ) ⊎ (Γ0 ⊎ Γ)) by ms.
       apply (cutM IHw (ForAll φ1)); [ simpl in *; lia | easy | easy].
     + assert (Hin : ((ForAll φ1) → φ2) ∈ Γ' ) by multiset_solver.
-      peapply (ImpLForAll (Γ0 ⊎ (Γ' ∖ {[ (ForAll φ1) → φ2 ]})) φ1 φ2).
-      peapply (IHh1 φ0 Γ0 Γ').
+      peapply (ImpLForAll (Γ0 ⊎ (Γ' ∖ {[ (ForAll φ1) → φ2 ]})) φ1 φ2);
+        [ | | multiset_solver ].
+      peapply (IHh1 φ0 Γ0 Γ');
+        [multiset_solver | simpl in Hw; lia | easy | easy | ].
       multiset_solver.
-      simpl in Hw; lia.
-      easy.
-      easy.
-      multiset_solver.
-      peapply (IHh2 φ0 Γ0 ((Γ' ∖ {[ (ForAll φ1) → φ2 ]}) • φ2)).
-      multiset_solver.
-      lia.
-      easy.
-      easy.
-      multiset_solver.      
+      peapply (IHh2 φ0 Γ0 ((Γ' ∖ {[ (ForAll φ1) → φ2 ]}) • φ2));
+        [ multiset_solver | lia | easy | easy ].
   - destruct (decide ((Implies (Exists φ1) φ2) = φ0)) as [Heq | Hneq].
     + assert (Γ' = Γ) by ms.
       subst.
       clear HeqΓ.
       apply ImpR_rev in Hp as Hp'.
       apply ExistsL_rev in Hp'.
-      
-      apply (IHh (ForAll (Implies φ1 (subst_form S' φ2)))); [
-          easy
-        | simpl in *; rewrite weight_subst_f; lia
-        | right; exists (Implies φ1 (subst_form S' φ2)); easy |].
+      apply (IHh (ForAll (Implies φ1 (subst_form S' φ2))));
+        [ easy | simpl in *; rewrite weight_subst_f; lia |
+          right; exists (Implies φ1 (subst_form S' φ2)); easy |].
       apply ForAllR.
       apply ImpR.
       easy.
     + assert (Hin: ((Exists φ1) → φ2) ∈ Γ') by multiset_solver.
-      peapply (ImpLExists (Γ0 ⊎ (Γ' ∖ {[ (Exists φ1) → φ2 ]})) φ1 φ2).
-
-      peapply (IHh φ0 Γ0 (Γ' ∖ {[ (Exists φ1) → φ2 ]} • (ForAll (φ1 → φ2〔 S' 〕 ) ))).
-      multiset_solver.
-      lia.
-      easy.
-      easy.
-      multiset_solver.
+      peapply (ImpLExists (Γ0 ⊎ (Γ' ∖ {[ (Exists φ1) → φ2 ]})) φ1 φ2); [ | multiset_solver].
+      peapply (IHh φ0 Γ0 (Γ' ∖ {[ (Exists φ1) → φ2 ]} • (ForAll (φ1 → φ2〔 S' 〕 ) ))); [ multiset_solver | lia | easy | easy ].
 Qed.
       
 Lemma cut_principal_add (w : nat) (IHw : CutHyp w) (φ : form) (Γ : env)
